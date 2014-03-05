@@ -1,0 +1,150 @@
+#!/bin/sh
+
+BASE="$(dirname $(readlink -f $0))/../"
+
+DOCKER_ENVIRONMENT_NAME=${DOCKER_ENVIRONMENT:-"development"}
+
+# Default envs for all names
+DOCKER_DEFAULT_ENV="$BASE/../env/default/env"
+
+if [ ! -f $DOCKER_DEFAULT_ENV ]; then
+  printf "Default environment does not exist: $DOCKER_DEFAULT_ENV\n"
+  exit 1
+fi
+
+. $DOCKER_DEFAULT_ENV
+
+# Image name is the first argument
+DOCKER_NAME=$1
+
+if [ -z $DOCKER_NAME ]; then
+  printf "Usage: $0 {name}\n"
+  exit 1
+fi
+
+# Default envs for this name
+DOCKER_NAME_DEFAULT_ENV=$(readlink -f "$BASE/../env/default/$DOCKER_NAME")
+
+if [ ! -f $DOCKER_NAME_DEFAULT_ENV ]; then
+  printf "Default environment for $DOCKER_NAME does not exist: $DOCKER_NAME_DEFAULT_ENV\n"
+  exit 1
+fi
+
+. $DOCKER_NAME_DEFAULT_ENV
+
+# Extra envs for this name depending on environment
+DOCKER_NAME_ENVIRONMENT_ENV=$(readlink -f "$BASE/../env/$DOCKER_ENVIRONMENT_NAME/$DOCKER_NAME")
+
+if [ -f $DOCKER_NAME_ENVIRONMENT_ENV ]; then
+  . $DOCKER_NAME_ENVIRONMENT_ENV
+fi
+
+# Takes variables, return 1 if not set
+check_variables() {
+  for VAR in "$@"; do
+    if [ -z "$VAR" ]; then
+      return 1
+    fi
+  done
+}
+
+check_variables $DOCKER_IMAGE_TAG || exit 1
+
+case "$2" in
+
+  # Prints environment as loaded
+  env)
+    printf "ENV\n"
+    printf "USE $DOCKER_DEFAULT_ENV\n"
+    printf "USE $DOCKER_NAME_DEFAULT_ENV\n"
+    if [ -f $DOCKER_NAME_ENVIRONMENT_ENV ]; then
+      printf "USE $DOCKER_NAME_ENVIRONMENT_ENV\n"
+    else
+      printf "NOT $DOCKER_NAME_ENVIRONMENT_ENV\n"
+    fi
+    ;;
+
+  # Builds an image
+  build)
+    printf "BUILD $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG\n"
+    docker build $DOCKER_BUILD_ARGS -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $BASE/../$DOCKER_NAME
+    ;;
+
+  # Run
+  run)
+    DOCKER_RUN_CMD=${DOCKER_RUN_CMD_OVERRIDE:-$3}
+    printf "RUN $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD\n"
+    check_variables $DOCKER_RUN_ARGS $DOCKER_RUN_NAME || exit 1
+    eval docker run $DOCKER_RUN_ARGS -name $DOCKER_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD
+    ;;
+
+  # stop, rm, run
+  rerun)
+    eval $0 $1 stop || exit 1
+    eval $0 $1 rm || exit 1
+    eval $0 $1 run || exit 1
+    ;;
+
+  # Stop
+  stop)
+    check_variables $DOCKER_RUN_NAME || exit 1
+    printf "STOP $DOCKER_RUN_NAME\n"
+    docker stop $DOCKER_RUN_NAME 1>/dev/null
+    ;;
+
+  # Start
+  start)
+    check_variables $DOCKER_RUN_NAME || exit 1
+    printf "START $DOCKER_RUN_NAME\n"
+    docker start $DOCKER_RUN_NAME 1>/dev/null
+    ;;
+
+  # Restart
+  restart)
+    check_variables $DOCKER_RUN_NAME || exit 1
+    printf "RESTART $DOCKER_RUN_NAME\n"
+    docker restart $DOCKER_RUN_NAME 1>/dev/null
+    ;;
+
+  # Remove
+  rm)
+    check_variables $DOCKER_RUN_NAME || exit 1
+    printf "RM $DOCKER_RUN_NAME\n"
+    docker rm $DOCKER_RUN_NAME 1>/dev/null
+    ;;
+
+  # Stop and remove
+  stop_rm)
+    eval $0 $1 stop || exit 1
+    eval $0 $1 rm || exit 1
+    ;;
+
+  # Logs
+  log)
+    check_variables $DOCKER_RUN_NAME || exit 1
+    printf "LOG $DOCKER_RUN_NAME\n"
+    docker logs -f $DOCKER_RUN_NAME
+    ;;
+
+  # Console
+  console)
+    check_variables $DOCKER_CONSOLE_CMD || exit 1
+    printf "CONSOLE $DOCKER_RUN_NAME\n"
+    eval docker run -rm -t -i -link $DOCKER_RUN_NAME:$DOCKER_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_CONSOLE_CMD
+    ;;
+
+  # Test routine
+  test)
+    check_variables $DOCKER_TEST_RUN_CMD $DOCKER_TEST_RUN_NAME || exit 1
+    printf "TEST $DOCKER_TEST_RUN_NAME"
+    eval docker run $DOCKER_TEST_RUN_ARGS -name $DOCKER_TEST_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_TEST_RUN_CMD
+    ;;
+
+	*)
+		echo "Usage: $0 {name} {build|run|stop|start|restart|rm|stop_rm|log|console|test}"
+		exit 1
+		;;
+
+esac
+
+exit 0
