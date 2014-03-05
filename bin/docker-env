@@ -68,14 +68,15 @@ case "$2" in
 
   # Builds an image
   build)
+    DOCKER_BUILD_ARGS=${DOCKER_BUILD_ARGS:-$3}
     printf "BUILD $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG\n"
-    docker build $DOCKER_BUILD_ARGS -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $BASE/../$DOCKER_NAME
+    eval docker build $DOCKER_BUILD_ARGS -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $BASE/../$DOCKER_NAME
     ;;
 
   # Run
   run)
     DOCKER_RUN_CMD=${DOCKER_RUN_CMD_OVERRIDE:-$3}
-    printf "RUN $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD\n"
+    printf "RUN ($DOCKER_RUN_ARGS) $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD\n"
     check_variables $DOCKER_RUN_ARGS $DOCKER_RUN_NAME || exit 1
     eval docker run $DOCKER_RUN_ARGS -name $DOCKER_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD
     ;;
@@ -91,28 +92,28 @@ case "$2" in
   stop)
     check_variables $DOCKER_RUN_NAME || exit 1
     printf "STOP $DOCKER_RUN_NAME\n"
-    docker stop $DOCKER_RUN_NAME 1>/dev/null
+    eval docker stop $DOCKER_RUN_NAME 1>/dev/null
     ;;
 
   # Start
   start)
     check_variables $DOCKER_RUN_NAME || exit 1
     printf "START $DOCKER_RUN_NAME\n"
-    docker start $DOCKER_RUN_NAME 1>/dev/null
+    eval docker start $DOCKER_RUN_NAME 1>/dev/null
     ;;
 
   # Restart
   restart)
     check_variables $DOCKER_RUN_NAME || exit 1
     printf "RESTART $DOCKER_RUN_NAME\n"
-    docker restart $DOCKER_RUN_NAME 1>/dev/null
+    eval docker restart $DOCKER_RUN_NAME 1>/dev/null
     ;;
 
   # Remove
   rm)
     check_variables $DOCKER_RUN_NAME || exit 1
     printf "RM $DOCKER_RUN_NAME\n"
-    docker rm $DOCKER_RUN_NAME 1>/dev/null
+    eval docker rm $DOCKER_RUN_NAME 1>/dev/null
     ;;
 
   # Stop and remove
@@ -125,7 +126,7 @@ case "$2" in
   log)
     check_variables $DOCKER_RUN_NAME || exit 1
     printf "LOG $DOCKER_RUN_NAME\n"
-    docker logs -f $DOCKER_RUN_NAME
+    eval docker logs -f $DOCKER_RUN_NAME
     ;;
 
   # Console
@@ -139,6 +140,7 @@ case "$2" in
   test)
     check_variables $DOCKER_TEST_RUN_CMD $DOCKER_TEST_RUN_NAME || exit 1
     printf "TEST $DOCKER_TEST_RUN_NAME"
+    eval docker rm $DOCKER_TEST_RUN_NAME &>/dev/null
     eval docker run $DOCKER_TEST_RUN_ARGS -name $DOCKER_TEST_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_TEST_RUN_CMD
     ;;
 
