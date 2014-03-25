@@ -2,12 +2,24 @@
 
 DOCKER_ENV_PATH=${DOCKER_ENV_PATH:-"/../"}
 
-BASE="$(dirname $(readlink -f $0))$DOCKER_ENV_PATH"
+case $DOCKER_ENV_PATH in
+
+ # Absolute path
+ /*)
+   BASE=$DOCKER_ENV_PATH
+   ;;
+
+ # Relative path
+ *) 
+   BASE=$(readlink -m $0/$DOCKER_ENV_PATH)
+   ;;
+
+esac
 
 DOCKER_ENVIRONMENT_NAME=${DOCKER_ENVIRONMENT:-"development"}
 
 # Default envs for all names
-DOCKER_DEFAULT_ENV="$BASE/../env/default/env"
+DOCKER_DEFAULT_ENV="$BASE/default/env"
 
 if [ ! -f $DOCKER_DEFAULT_ENV ]; then
   printf "Default environment does not exist: $DOCKER_DEFAULT_ENV\n"
@@ -25,7 +37,7 @@ if [ -z $DOCKER_NAME ]; then
 fi
 
 # Default envs for this name
-DOCKER_NAME_DEFAULT_ENV=$(readlink -f "$BASE/../env/default/$DOCKER_NAME")
+DOCKER_NAME_DEFAULT_ENV=$(readlink -f "$BASE/default/$DOCKER_NAME")
 
 if [ ! -f $DOCKER_NAME_DEFAULT_ENV ]; then
   printf "Default environment for $DOCKER_NAME does not exist: $DOCKER_NAME_DEFAULT_ENV\n"
@@ -35,7 +47,7 @@ fi
 . $DOCKER_NAME_DEFAULT_ENV
 
 # Extra envs for this name depending on environment
-DOCKER_NAME_ENVIRONMENT_ENV=$(readlink -f "$BASE/../env/$DOCKER_ENVIRONMENT_NAME/$DOCKER_NAME")
+DOCKER_NAME_ENVIRONMENT_ENV=$(readlink -f "$BASE/$DOCKER_ENVIRONMENT_NAME/$DOCKER_NAME")
 
 if [ -f $DOCKER_NAME_ENVIRONMENT_ENV ]; then
   . $DOCKER_NAME_ENVIRONMENT_ENV
