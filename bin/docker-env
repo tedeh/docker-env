@@ -11,7 +11,7 @@ case $DOCKER_ENV_PATH in
 
  # Relative path
  *) 
-   BASE=$(readlink -m $(dirname 0)/$DOCKER_ENV_PATH)
+   BASE=$(dirname $(readlink -m $0))/$DOCKER_ENV_PATH
    ;;
 
 esac
