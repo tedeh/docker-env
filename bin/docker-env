@@ -90,7 +90,7 @@ case "$2" in
     DOCKER_RUN_CMD=${DOCKER_RUN_CMD_OVERRIDE:-$3}
     printf "RUN ($DOCKER_RUN_ARGS) $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD\n"
     check_variables $DOCKER_RUN_ARGS $DOCKER_RUN_NAME || exit 1
-    eval docker run $DOCKER_RUN_ARGS -name $DOCKER_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD
+    eval docker run $DOCKER_RUN_ARGS --name $DOCKER_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD
     ;;
 
   # stop, rm, run
@@ -145,7 +145,7 @@ case "$2" in
   console)
     check_variables $DOCKER_CONSOLE_CMD || exit 1
     printf "CONSOLE $DOCKER_RUN_NAME\n"
-    eval docker run -rm -t -i -link $DOCKER_RUN_NAME:$DOCKER_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_CONSOLE_CMD
+    eval docker run --rm -t -i --link $DOCKER_RUN_NAME:$DOCKER_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_CONSOLE_CMD
     ;;
 
   # Test routine
@@ -153,7 +153,7 @@ case "$2" in
     check_variables $DOCKER_TEST_RUN_CMD $DOCKER_TEST_RUN_NAME || exit 1
     printf "TEST $DOCKER_TEST_RUN_NAME"
     eval docker rm $DOCKER_TEST_RUN_NAME &>/dev/null
-    eval docker run $DOCKER_TEST_RUN_ARGS -name $DOCKER_TEST_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_TEST_RUN_CMD
+    eval docker run $DOCKER_TEST_RUN_ARGS --name $DOCKER_TEST_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_TEST_RUN_CMD
     ;;
 
 	*)
