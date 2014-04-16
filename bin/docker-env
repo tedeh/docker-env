@@ -105,6 +105,7 @@ case "$2" in
     check_variables $DOCKER_RUN_NAME || exit 1
     printf "STOP $DOCKER_RUN_NAME\n"
     eval docker stop $DOCKER_RUN_NAME 1>/dev/null
+    exit $?
     ;;
 
   # Start
@@ -112,6 +113,7 @@ case "$2" in
     check_variables $DOCKER_RUN_NAME || exit 1
     printf "START $DOCKER_RUN_NAME\n"
     eval docker start $DOCKER_RUN_NAME 1>/dev/null
+    exit $?
     ;;
 
   # Restart
@@ -119,6 +121,7 @@ case "$2" in
     check_variables $DOCKER_RUN_NAME || exit 1
     printf "RESTART $DOCKER_RUN_NAME\n"
     eval docker restart $DOCKER_RUN_NAME 1>/dev/null
+    exit $?
     ;;
 
   # Remove
@@ -126,6 +129,7 @@ case "$2" in
     check_variables $DOCKER_RUN_NAME || exit 1
     printf "RM $DOCKER_RUN_NAME\n"
     eval docker rm $DOCKER_RUN_NAME 1>/dev/null
+    exit $?
     ;;
 
   # Stop and remove
@@ -139,6 +143,7 @@ case "$2" in
     check_variables $DOCKER_RUN_NAME || exit 1
     printf "LOG $DOCKER_RUN_NAME\n"
     eval docker logs -f $DOCKER_RUN_NAME
+    exit $?
     ;;
 
   # Console
@@ -146,6 +151,7 @@ case "$2" in
     check_variables $DOCKER_CONSOLE_CMD || exit 1
     printf "CONSOLE $DOCKER_RUN_NAME\n"
     eval docker run --rm -t -i --link $DOCKER_RUN_NAME:$DOCKER_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_CONSOLE_CMD
+    exit $?
     ;;
 
   # Test routine
@@ -154,6 +160,7 @@ case "$2" in
     printf "TEST $DOCKER_TEST_RUN_NAME"
     eval docker rm $DOCKER_TEST_RUN_NAME &>/dev/null
     eval docker run $DOCKER_TEST_RUN_ARGS --name $DOCKER_TEST_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_TEST_RUN_CMD
+    exit $?
     ;;
 
 	*)
