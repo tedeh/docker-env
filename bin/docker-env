@@ -154,6 +154,13 @@ case "$2" in
     exit $?
     ;;
 
+  # Shell
+  shell)
+    printf "SHELL $DOCKER_RUN_NAME\n"
+    eval docker run --rm -t -i $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG /bin/bash
+    exit $?
+    ;;
+
   # Test routine
   test)
     check_variables $DOCKER_TEST_RUN_CMD $DOCKER_TEST_RUN_NAME || exit 1
@@ -164,7 +171,7 @@ case "$2" in
     ;;
 
 	*)
-		echo "Usage: $0 {name} {build|run|stop|start|restart|rm|stop_rm|logs|console|test}"
+		echo "Usage: $0 {name} {build|run|stop|start|restart|rm|stop_rm|logs|console|test|shell}"
 		exit 1
 		;;
 
