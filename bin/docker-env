@@ -135,7 +135,7 @@ case "$2" in
     ;;
 
   # Logs
-  log)
+  logs)
     check_variables $DOCKER_RUN_NAME || exit 1
     printf "LOG $DOCKER_RUN_NAME\n"
     eval docker logs -f $DOCKER_RUN_NAME
@@ -157,7 +157,7 @@ case "$2" in
     ;;
 
 	*)
-		echo "Usage: $0 {name} {build|run|stop|start|restart|rm|stop_rm|log|console|test}"
+		echo "Usage: $0 {name} {build|run|stop|start|restart|rm|stop_rm|logs|console|test}"
 		exit 1
 		;;
 
