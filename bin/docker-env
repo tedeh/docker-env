@@ -166,6 +166,13 @@ case "$2" in
     exit $?
     ;;
 
+  # Exec
+  exec)
+    printf "EXEC $DOCKER_RUN_NAME\n"
+    eval docker exec -t -i $DOCKER_RUN_NAME /bin/bash
+    exit $?
+    ;;
+
   # Test routine
   test)
     check_variables $DOCKER_TEST_RUN_CMD $DOCKER_TEST_RUN_NAME || exit 1
@@ -176,7 +183,7 @@ case "$2" in
     ;;
 
 	*)
-		echo "Usage: $0 {name} {build|run|stop|start|restart|rm|stop_rm|logs|console|test|shell}"
+		echo "Usage: $0 {name} {build|run|stop|start|restart|rm|stop_rm|logs|console|test|shell|exec}"
 		exit 1
 		;;
 
