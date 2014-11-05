@@ -100,9 +100,9 @@ case "$2" in
 
   # stop, rm, run
   rerun)
-    eval $0 $1 stop || exit 1
-    eval $0 $1 rm || exit 1
-    eval $0 $1 run || exit 1
+    eval $0 $1 stop
+    eval $0 $1 rm
+    eval $0 $1 run
     ;;
 
   # Stop
