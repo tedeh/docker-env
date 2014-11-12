@@ -78,6 +78,19 @@ case "$2" in
     fi
     ;;
 
+  # Get args for cmd
+  args)
+    DOCKER_ARGS_CMD=$3
+    case "$DOCKER_ARGS_CMD" in
+      run)
+        DOCKER_RUN_CMD=${DOCKER_RUN_CMD_OVERRIDE:-$4}
+        check_variables $DOCKER_RUN_ARGS $DOCKER_RUN_NAME || exit 1
+        printf "docker run $DOCKER_RUN_ARGS --name $DOCKER_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD\n"
+      ;;
+    esac
+    ;;
+    
+
   # Builds an image
   build)
     DOCKER_BUILD_ARGS=${DOCKER_BUILD_ARGS:-$3}
@@ -92,10 +105,9 @@ case "$2" in
 
   # Run
   run)
-    DOCKER_RUN_CMD=${DOCKER_RUN_CMD_OVERRIDE:-$3}
-    printf "RUN ($DOCKER_RUN_ARGS) $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD\n"
-    check_variables $DOCKER_RUN_ARGS $DOCKER_RUN_NAME || exit 1
-    eval docker run $DOCKER_RUN_ARGS --name $DOCKER_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD
+    DOCKER_EVAL=$($0 $1 args run $3)
+    printf "RUN $DOCKER_EVAL\n"
+    eval $DOCKER_EVAL
     ;;
 
   # stop, rm, run
@@ -183,7 +195,7 @@ case "$2" in
     ;;
 
 	*)
-		echo "Usage: $0 {name} {build|run|stop|start|restart|rm|stop_rm|logs|console|test|shell|exec}"
+		echo "Usage: $0 {name} {build|run|args|stop|start|restart|rm|stop_rm|logs|console|test|shell|exec}"
 		exit 1
 		;;
 
