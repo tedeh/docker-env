@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 DOCKER_ENV_PATH=${DOCKER_ENV_PATH:-"/../"}
 
