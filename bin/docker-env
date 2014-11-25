@@ -2,6 +2,12 @@
 
 DOCKER_ENV_PATH=${DOCKER_ENV_PATH:-"/../"}
 
+# Special case for getting the args of a command
+if [ "$2" == "args" ]; then
+  DOCKER_GET_ARGS="1"
+  set -- "${@:1:1}" "${@:3:9}";
+fi
+
 case $DOCKER_ENV_PATH in
 
  # Absolute path
@@ -62,6 +68,17 @@ check_variables() {
   done
 }
 
+eval_or_print() {
+
+  if [ "$DOCKER_GET_ARGS" == "1" ]; then
+    printf "$1\n"
+  else
+    printf "$1\n"
+    eval $1
+  fi
+
+}
+
 check_variables $DOCKER_IMAGE_TAG || exit 1
 
 case "$2" in
@@ -77,25 +94,29 @@ case "$2" in
       printf "NOT $DOCKER_NAME_ENVIRONMENT_ENV\n"
     fi
     ;;
+    
 
   # Builds an image
   build)
     DOCKER_BUILD_ARGS=${DOCKER_BUILD_ARGS:-$3}
     printf "BUILD $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG\n"
-    eval docker build $DOCKER_BUILD_ARGS -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $BASE/../$DOCKER_NAME
-    eval docker tag $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:latest
+    DOCKER_EVAL="docker build $DOCKER_BUILD_ARGS -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $BASE/../$DOCKER_NAME"
+    eval_or_print "$DOCKER_EVAL"
+    DOCKER_EVAL="docker tag $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:latest"
+    eval_or_print "$DOCKER_EVAL"
     if [ -n $DOCKER_IMAGE_EXTRA_TAG ]; then
-      printf "extratag: $DOCKER_IMAGE_EXTRA_TAG"
-      eval docker tag $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_EXTRA_TAG
+      DOCKER_EVAL="docker tag $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_EXTRA_TAG"
+      eval_or_print "$DOCKER_EVAL"
     fi
     ;;
 
   # Run
   run)
     DOCKER_RUN_CMD=${DOCKER_RUN_CMD_OVERRIDE:-$3}
-    printf "RUN ($DOCKER_RUN_ARGS) $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD\n"
     check_variables $DOCKER_RUN_ARGS $DOCKER_RUN_NAME || exit 1
-    eval docker run $DOCKER_RUN_ARGS --name $DOCKER_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD
+    DOCKER_EVAL="docker run $DOCKER_RUN_ARGS --name $DOCKER_RUN_NAME $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_RUN_CMD"
+    printf "RUN $1\n"
+    eval_or_print "$DOCKER_EVAL"
     ;;
 
   # stop, rm, run
@@ -183,7 +204,7 @@ case "$2" in
     ;;
 
 	*)
-		echo "Usage: $0 {name} {build|run|stop|start|restart|rm|stop_rm|logs|console|test|shell|exec}"
+		echo "Usage: $0 {name} {build|run|args|stop|start|restart|rm|stop_rm|logs|console|test|shell|exec}"
 		exit 1
 		;;
 
