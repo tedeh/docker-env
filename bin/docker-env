@@ -102,11 +102,15 @@ case "$2" in
     printf "BUILD $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG\n"
     DOCKER_EVAL="docker build $DOCKER_BUILD_ARGS -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $BASE/../$DOCKER_NAME"
     eval_or_print "$DOCKER_EVAL"
-    DOCKER_EVAL="docker tag -f $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:latest"
-    eval_or_print "$DOCKER_EVAL"
-    if [ -n $DOCKER_IMAGE_EXTRA_TAG ]; then
-      DOCKER_EVAL="docker tag -f $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_EXTRA_TAG"
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ]; then
+      DOCKER_EVAL="docker tag -f $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:latest"
       eval_or_print "$DOCKER_EVAL"
+      if [ -n $DOCKER_IMAGE_EXTRA_TAG ]; then
+        DOCKER_EVAL="docker tag -f $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_EXTRA_TAG"
+        eval_or_print "$DOCKER_EVAL"
+    fi
+
     fi
     ;;
 
