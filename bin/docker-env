@@ -75,6 +75,7 @@ eval_or_print() {
   else
     printf "$1\n"
     eval $1
+    return $?
   fi
 
 }
@@ -101,16 +102,12 @@ case "$2" in
     DOCKER_BUILD_ARGS=${DOCKER_BUILD_ARGS:-$3}
     printf "BUILD $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG\n"
     DOCKER_EVAL="docker build $DOCKER_BUILD_ARGS -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $BASE/../$DOCKER_NAME"
+    eval_or_print "$DOCKER_EVAL" || exit $?
+    DOCKER_EVAL="docker tag -f $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:latest"
     eval_or_print "$DOCKER_EVAL"
-    RETVAL=$?
-    if [ $RETVAL -eq 0 ]; then
-      DOCKER_EVAL="docker tag -f $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:latest"
+    if [ -n $DOCKER_IMAGE_EXTRA_TAG ]; then
+      DOCKER_EVAL="docker tag -f $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_EXTRA_TAG"
       eval_or_print "$DOCKER_EVAL"
-      if [ -n $DOCKER_IMAGE_EXTRA_TAG ]; then
-        DOCKER_EVAL="docker tag -f $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_EXTRA_TAG"
-        eval_or_print "$DOCKER_EVAL"
-    fi
-
     fi
     ;;
 
